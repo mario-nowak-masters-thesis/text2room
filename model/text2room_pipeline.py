@@ -382,7 +382,7 @@ class Text2RoomPipeline(torch.nn.Module):
         if self.args.update_mask_after_improvement:
             self.inpaint_mask = self.inpaint_mask + self.eroded_dilated_inpaint_mask
 
-        # inpaint large missing areas with stable-diffusion model
+        # ! inpaint large missing areas with stable-diffusion model
         inpainted_image_pil = self.inpaint_pipe(
             prompt=self.args.prompt,
             negative_prompt=self.args.negative_prompt,
@@ -544,7 +544,7 @@ class Text2RoomPipeline(torch.nn.Module):
 
     def forward(self, pos=0, offset=0, save_files=True):
         # get next pose
-        self.world_to_cam = self.get_next_pose_in_trajectory(pos)
+        self.world_to_cam = self.get_next_pose_in_trajectory(pos) # * this is a [4, 4] camera matrix
         self.seen_poses.append(self.world_to_cam.clone())
 
         # render --> inpaint --> add to 3D structure
@@ -596,7 +596,7 @@ class Text2RoomPipeline(torch.nn.Module):
         # generate images with forward-warping
         pbar = tqdm(range(self.args.n_images))
         for pos in pbar:
-            pbar.set_description(f"Image [{pos}/{self.args.n_images - 1}]")
+            pbar.set_description(f"Image [{pos + 1}/{self.args.n_images}]")
             self.forward(pos, offset)
 
         # reset gpu memory

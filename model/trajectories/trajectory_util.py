@@ -7,7 +7,7 @@ from model.mesh_fusion.util import get_extrinsics
 # PRIVATE HELPERS #
 #######################
 
-def _rot_x(x):
+def _rot_x(x: float) -> np.ndarray:
     '''
     positive: look up, negative: look down
 
@@ -16,7 +16,7 @@ def _rot_x(x):
     return np.array([x * np.pi / 180, 0, 0], dtype=np.float32)
 
 
-def _rot_y(x):
+def _rot_y(x: float) -> np.ndarray:
     '''
     positive: look right, negative: look left
 
@@ -25,7 +25,7 @@ def _rot_y(x):
     return np.array([0, x * np.pi / 180, 0], dtype=np.float32)
 
 
-def _rot_z(x):
+def _rot_z(x: float) -> np.ndarray:
     '''
     positive: tilt left, negative: tilt right
 
@@ -34,7 +34,7 @@ def _rot_z(x):
     return np.array([0, 0, x * np.pi / 180], dtype=np.float32)
 
 
-def _trans_x(x):
+def _trans_x(x: float) -> np.ndarray:
     '''
     positive: right, negative: left
 
@@ -43,7 +43,7 @@ def _trans_x(x):
     return np.array([x, 0, 0], dtype=np.float32)
 
 
-def _trans_y(x):
+def _trans_y(x: float) -> np.ndarray:
     '''
     positive: down, negative: up
 
@@ -52,7 +52,7 @@ def _trans_y(x):
     return np.array([0, x, 0], dtype=np.float32)
 
 
-def _trans_z(x):
+def _trans_z(x: float) -> np.ndarray:
     '''
     positive: back, negative: front
 
@@ -61,11 +61,15 @@ def _trans_z(x):
     return np.array([0, 0, x], dtype=np.float32)
 
 
-def _config_fn(fn, **kwargs):
+def _config_fn(fn, **kwargs): # * steps gets set with n_images (i.e the number of images to be used for that trajectory)
     return lambda i, steps: fn(i, steps, **kwargs)
 
 
 def _circle(i, steps=60, txmax=0, txmin=0, tymax=0, tymin=0, tzmax=0, tzmin=0, rxmax=0, rxmin=0, rymax=0, rymin=0, rzmax=0, rzmin=0):
+    """
+    :param i: current step of the trajectory
+    :param steps: total number of steps used in the trajectory
+    """
     tx_delta = (txmax - txmin) / (steps // 2)
     ty_delta = (tymax - tymin) / (steps // 2)
     tz_delta = (tzmax - tzmin) / (steps // 2)
@@ -74,15 +78,15 @@ def _circle(i, steps=60, txmax=0, txmin=0, tymax=0, tymin=0, tzmax=0, tzmin=0, r
     ry_delta = (rymax - rymin) / (steps // 2)
     rz_delta = (rzmax - rzmin) / (steps // 2)
 
-    f = i % (steps // 2)
+    motion_fraction = i % (steps // 2)
 
-    tx = txmin + f * tx_delta
-    ty = tymin + f * ty_delta
-    tz = tzmin + f * tz_delta
+    tx = txmin + motion_fraction * tx_delta
+    ty = tymin + motion_fraction * ty_delta
+    tz = tzmin + motion_fraction * tz_delta
 
-    rx = rxmin + f * rx_delta
-    ry = rymin + f * ry_delta
-    rz = rzmin + f * rz_delta
+    rx = rxmin + motion_fraction * rx_delta
+    ry = rymin + motion_fraction * ry_delta
+    rz = rzmin + motion_fraction * rz_delta
 
     if i < steps // 2:
         T = _trans_x(-tx)
@@ -136,14 +140,14 @@ def _back_and_forth(i, steps=20, txmax=0, txmin=0, tymax=0, tymin=0, tzmax=0, tz
         T = _trans_x(-tx)
         T += _trans_z(tz)
         T += _trans_y(ty)
-        R = _rot_y(-ry)
+        R = _rot_y(-ry) # ! this minus sign is the only difference compared to _circle
         R += _rot_x(rx)
         R += _rot_z(rz)
     else:
         T = _trans_x(tx)
         T += _trans_z(tz)
         T += _trans_y(-ty)
-        R = _rot_y(ry)
+        R = _rot_y(ry) # ! this minus sign is the only difference compared to _circle
         R += _rot_x(-rx)
         R += _rot_z(-rz)
 

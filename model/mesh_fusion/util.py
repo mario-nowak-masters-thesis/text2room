@@ -100,11 +100,17 @@ def get_intrinsics(img, fov_in_degrees=55.0):
     return k_ref
 
 
-def get_extrinsics(rot_xyz, trans_xyz, device="cpu"):
+def get_extrinsics(rot_xyz: np.array, trans_xyz: np.array, device="cpu") -> torch.Tensor:
+    """
+    :param rot_xyz: a numpy array specifying the Euler angles for each dimension
+    :param trans_xyz: a numpy array specifying the translation for each dimension
+
+    :return: a 4x4 camera matrix as a torch tensor 
+    """
     T = torch.tensor(trans_xyz)
     R = euler_angles_to_matrix(torch.tensor(rot_xyz), "XYZ")
 
-    RT = torch.cat([R, T[:, None]], dim=-1).to(device)  # RT is [4,4]
+    RT = torch.cat([R, T[:, None]], dim=-1).to(device) # RT is [4,4]
     RT = torch.cat([RT, torch.tensor([[0, 0, 0, 1]]).to(RT)], dim=0)
 
     return RT

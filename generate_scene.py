@@ -20,10 +20,10 @@ def main(args):
         args.prompt = trajectories[0]["prompt"]
 
     # get first image from text prompt or saved image folder
-    if (not args.input_image_path) or (not os.path.isfile(args.input_image_path)):
-        first_image_pil = generate_first_image(args)
-    else:
+    if args.input_image_path and os.path.isfile(args.input_image_path):
         first_image_pil = Image.open(args.input_image_path)
+    else:
+        first_image_pil = generate_first_image(args)
 
     # load pipeline
     pipeline = Text2RoomPipeline(args, first_image_pil=first_image_pil)

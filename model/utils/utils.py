@@ -57,6 +57,10 @@ def pil_to_torch(img, device, normalize=True):
 
 
 def generate_first_image(args):
+    """
+    Generates an image using stable diffusion. Downloads the model weights from huggingface if no existing weights were
+    provided.
+    """
     model_path = os.path.join(args.models_path, "stable-diffusion-2-1")
     if not os.path.exists(model_path):
         model_path = "stabilityai/stable-diffusion-2-1"
