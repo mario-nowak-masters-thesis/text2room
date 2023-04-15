@@ -64,4 +64,9 @@ def get_default_parser():
     group.add_argument("--max_inpaint_ratio", type=float, default=0.2, help="a sampled camera's observed image must have at most this many unobserved pixels (fraction in percent)")
     group.add_argument("--completion_dilate_iters", type=int, default=8, help="repeat mask dilation this many times during completion")
 
+    # custom parameters
+    group = parser.add_argument_group("custom")
+    group.add_argument('--quick_run', action='store_true')
+    group.add_argument('--skip_classical_inpainting', action='store_true')
+
     return parser
