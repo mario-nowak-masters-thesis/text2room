@@ -1,0 +1,11 @@
+[
+  {
+    "prompt": "walkthrough, inside a medieval forge, metal, fire, beautiful photo, masterpiece",
+    "fn_name": "true_backward",
+    "fn_args": {
+      "tzmin": 0.0,
+      "tzmax": 20.0
+    },
+    "n_images": 25
+  }
+]
