@@ -346,41 +346,42 @@ class Text2RoomPipeline(torch.nn.Module):
 
         return rendered_image_tensor, rendered_image_pil, inpaint_mask_pil
 
-    def inpaint(self, rendered_image_pil, inpaint_mask_pil):
+    def inpaint(self, rendered_image_pil: Image, inpaint_mask_pil: Image):
         m = np.asarray(inpaint_mask_pil)[..., 0].astype(np.uint8)
 
-        # inpaint with classical method to fill small gaps
-        rendered_image_numpy = np.asarray(rendered_image_pil)
-        rendered_image_pil = Image.fromarray(cv2.inpaint(rendered_image_numpy, m, 3, cv2.INPAINT_TELEA))
+        if not self.args.skip_classical_inpainting:
+            # inpaint with classical method to fill small gaps
+            rendered_image_numpy = np.asarray(rendered_image_pil)
+            rendered_image_pil = Image.fromarray(cv2.inpaint(rendered_image_numpy, m, 3, cv2.INPAINT_TELEA))
 
-        # remove small seams from mask
-        kernel = np.ones((7, 7), np.uint8)
-        m2 = m
-        if self.args.erode_iters > 0:
-            m2 = cv2.erode(m, kernel, iterations=self.args.erode_iters)
-        if self.args.dilate_iters > 0:
-            m2 = cv2.dilate(m2, kernel, iterations=self.args.dilate_iters)
+            # remove small seams from mask
+            kernel = np.ones((7, 7), np.uint8)
+            m2 = m
+            if self.args.erode_iters > 0:
+                m2 = cv2.erode(m, kernel, iterations=self.args.erode_iters)
+            if self.args.dilate_iters > 0:
+                m2 = cv2.dilate(m2, kernel, iterations=self.args.dilate_iters)
 
-        # do not allow mask to extend to boundaries
-        if self.args.boundary_thresh > 0:
-            t = self.args.boundary_thresh
-            h, w = m2.shape
-            m2[:t] = m[:t]  # top
-            m2[h - t:] = m[h - t:]  # bottom
-            m2[:, :t] = m[:, :t]  # left
-            m2[:, w - t:] = m[:, w - t:]  # right
+            # do not allow mask to extend to boundaries
+            if self.args.boundary_thresh > 0:
+                t = self.args.boundary_thresh
+                h, w = m2.shape
+                m2[:t] = m[:t]  # top
+                m2[h - t:] = m[h - t:]  # bottom
+                m2[:, :t] = m[:, :t]  # left
+                m2[:, w - t:] = m[:, w - t:]  # right
 
-        # close inner holes in dilated masks -- find out-most contours and fill everything inside
-        contours, hierarchy = cv2.findContours(m2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        cv2.drawContours(m2, contours, -1, 255, thickness=cv2.FILLED)
+            # close inner holes in dilated masks -- find out-most contours and fill everything inside
+            contours, hierarchy = cv2.findContours(m2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            cv2.drawContours(m2, contours, -1, 255, thickness=cv2.FILLED)
 
-        # convert back to pil & save updated mask
-        inpaint_mask_pil = Image.fromarray(m2).convert("RGB")
-        self.eroded_dilated_inpaint_mask = torch.from_numpy(m2).to(self.inpaint_mask)
+            # convert back to pil & save updated mask
+            inpaint_mask_pil = Image.fromarray(m2).convert("RGB")
+            self.eroded_dilated_inpaint_mask = torch.from_numpy(m2).to(self.inpaint_mask)
 
-        # update inpaint mask to contain all updates
-        if self.args.update_mask_after_improvement:
-            self.inpaint_mask = self.inpaint_mask + self.eroded_dilated_inpaint_mask
+            # update inpaint mask to contain all updates
+            if self.args.update_mask_after_improvement:
+                self.inpaint_mask = self.inpaint_mask + self.eroded_dilated_inpaint_mask
 
         # ! inpaint large missing areas with stable-diffusion model
         inpainted_image_pil = self.inpaint_pipe(

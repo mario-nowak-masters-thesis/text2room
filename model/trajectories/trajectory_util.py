@@ -154,6 +154,50 @@ def _back_and_forth(i, steps=20, txmax=0, txmin=0, tymax=0, tymin=0, tzmax=0, tz
     return get_extrinsics(R, T)
 
 
+def _generic_motion(
+        i: int,
+        steps=20,
+        txmax=0,
+        txmin=0,
+        tymax=0,
+        tymin=0,
+        tzmax=0,
+        tzmin=0,
+        rxmax=0,
+        rxmin=0,
+        rymax=0,
+        rymin=0,
+        rzmax=0,
+        rzmin=0,
+    ) -> torch.Tensor:
+    tx_delta = (txmax - txmin) / steps
+    ty_delta = (tymax - tymin) / steps
+    tz_delta = (tzmax - tzmin) / steps
+
+    rx_delta = (rxmax - rxmin) / steps
+    ry_delta = (rymax - rymin) / steps
+    rz_delta = (rzmax - rzmin) / steps
+
+    f = i % steps
+
+    tx = txmin + f * tx_delta
+    ty = tymin + f * ty_delta
+    tz = tzmin + f * tz_delta
+
+    rx = rxmin + f * rx_delta
+    ry = rymin + f * ry_delta
+    rz = rzmin + f * rz_delta
+
+    T = _trans_x(tx)
+    T += _trans_z(tz)
+    T += _trans_y(ty)
+    R = _rot_y(ry)
+    R += _rot_x(rx)
+    R += _rot_z(rz)
+
+    return get_extrinsics(R, T)
+
+
 trans_t = lambda t: torch.Tensor([
     [1, 0, 0, 0],
     [0, 1, 0, 0],
@@ -286,3 +330,8 @@ def sphere_rot(radius=4.0, height=0.0, phi=20.0):
 
 def double_rot(radius=4.0, height=0.0, phi=2.0):
     return _config_fn(_double_sphere_rot_xz, radius=radius, height=height, phi=phi)
+
+# Custom trajectories
+
+def true_backward(tzmin=0, tzmax=10):
+    return _config_fn(_generic_motion, tzmax=tzmax, tzmin=tzmin)

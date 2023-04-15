@@ -1,0 +1,11 @@
+[
+  {
+    "prompt": "a living room with a lit furnace, couch and cozy curtains, bright lamps that make the room look well-lit",
+    "fn_name": "true_backward",
+    "fn_args": {
+      "tzmin": 0.0,
+      "tzmax": 20.0
+    },
+    "n_images": 25
+  }
+]

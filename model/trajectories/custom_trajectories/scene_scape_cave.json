@@ -1,0 +1,11 @@
+[
+  {
+    "prompt": "POV, cave, pools, water, dark cavern, inside a cave, beautiful scenery, best quality",
+    "fn_name": "true_backward",
+    "fn_args": {
+      "tzmin": 0.0,
+      "tzmax": 20.0
+    },
+    "n_images": 35
+  }
+]
