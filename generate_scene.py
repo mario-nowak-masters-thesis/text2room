@@ -7,10 +7,13 @@ from model.utils.opt import get_default_parser
 from model.utils.utils import save_poisson_mesh, generate_first_image
 
 import torch
+from pytorch_lightning import seed_everything
 
 
 @torch.no_grad()
 def main(args):
+    seed_everything(args.seed)
+
     # load trajectories
     trajectories = json.load(open(args.trajectory_file, "r"))
 
