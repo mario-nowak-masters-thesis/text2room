@@ -17,11 +17,12 @@ If you find Text2Room useful for your work please cite:
 }
 ```
 
+
 ## Prepare Environment
 
 Create a conda environment:
 
-```
+```sh
 conda create -n text2room python=3.9
 conda activate text2room
 pip install -r requirements.txt
@@ -30,7 +31,7 @@ pip install -r requirements.txt
 Then install Pytorch3D by following the [official instructions](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md).
 For example, to install Pytorch3D on Linux (tested with PyTorch 1.13.1, CUDA 11.7, Pytorch3D 0.7.2):
 
-```
+```sh
 conda install -c fvcore -c iopath -c conda-forge fvcore iopath
 pip install "git+https://github.com/facebookresearch/pytorch3d.git@stable"
 ```
@@ -46,6 +47,11 @@ Download the pretrained model weights for the fixed depth inpainting model, that
 - ```git clone https://huggingface.co/stabilityai/stable-diffusion-2-1```
 - ```ln -s <path/to/stable-diffusion-2-inpainting> checkpoints```
 - ```ln -s <path/to/stable-diffusion-2-1> checkpoints```
+
+### Troubleshooting
+
+- In case of errors while importing torch:
+  - https://stackoverflow.com/questions/74394695/how-does-one-fix-when-torch-cant-find-cuda-error-version-libcublaslt-so-11-no
 
 ## Generate a Scene
 
