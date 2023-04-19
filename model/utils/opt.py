@@ -68,5 +68,6 @@ def get_default_parser():
     group = parser.add_argument_group("custom")
     group.add_argument('--quick_run', action='store_true')
     group.add_argument('--skip_classical_inpainting', action='store_true')
+    group.add_argument('-seed', type=int, default=42, help="the seed to be used for image generation")
 
     return parser
