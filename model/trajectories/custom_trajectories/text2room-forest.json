@@ -1,6 +1,6 @@
 [
   {
-    "prompt": "beatiful view of forest, daylight, high quality",
+    "prompt": "beautiful view of forest, daylight, high quality",
     "fn_name": "forward",
     "fn_args": {
       "height": 0.0,
