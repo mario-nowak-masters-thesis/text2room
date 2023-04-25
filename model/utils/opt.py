@@ -70,4 +70,10 @@ def get_default_parser():
     group.add_argument('--skip_classical_inpainting', action='store_true')
     group.add_argument('-seed', type=int, default=42, help="the seed to be used for image generation")
 
+    # boosting monocular depth parameters
+    group = parser.add_argument_group("boosting monocular depth")
+    group.add_argument("--use_boosting_monocular_depth", default=True, action="store_true", help="whether to compute the depth using a boosted LeRes model")
+    group.add_argument("--leres_model_path", type=str, required=True, help="the path to a LeRes model checkpoint")
+    group.add_argument("--pix2pix_model_path", type=str, required=True, help="the path to a Pix2Pix model checkpoint")
+
     return parser

@@ -4,6 +4,7 @@ import os
 import cv2
 from PIL import Image
 import numpy as np
+import numpy.typing as npt
 import json
 from datetime import datetime
 from tqdm.auto import tqdm
@@ -39,6 +40,8 @@ from model.utils.utils import (
     save_settings,
     save_animation
 )
+
+from BoostingMonocularDepth.boosting_monocular_depth_pipe import BoostingMonocularDepthPipeline
 
 
 class Text2RoomPipeline(torch.nn.Module):
@@ -106,11 +109,17 @@ class Text2RoomPipeline(torch.nn.Module):
 
         # construct depth model
         self.iron_depth_n_net, self.iron_depth_model = load_iron_depth_model(self.args.iron_depth_type, self.args.iron_depth_iters, self.args.models_path, self.args.device)
+        self.boosting_monocular_depth_pipeline = BoostingMonocularDepthPipeline(
+            device=self.args.device,
+            leres_model_path=self.args.leres_model_path,
+            pix2pix_model_path=self.args.pix2pix_model_path,
+        )
 
     def remove_models(self):
         self.inpaint_pipe = None
         self.iron_depth_model = None
         self.iron_depth_n_net = None
+        self.boosting_monocular_depth_pipeline = None
         torch.cuda.empty_cache()
 
     def setup_output_directories(self):
@@ -229,17 +238,20 @@ class Text2RoomPipeline(torch.nn.Module):
         save_animation(self.args.rgbd_path, prefix=prefix)
 
     def predict_depth(self):
-        # use the IronDepth method to predict depth: https://github.com/baegwangbin/IronDepth
-        predicted_depth, _ = predict_iron_depth(
-            image=self.current_image_pil,
-            K=self.K,
-            device=self.args.device,
-            model=self.iron_depth_model,
-            n_net=self.iron_depth_n_net,
-            input_depth=self.rendered_depth,
-            input_mask=self.inpaint_mask,
-            fix_input_depth=True
-        )
+        if self.args.use_boosting_monocular_depth:
+            predicted_depth = self.predict_boosting_mde_depth()
+        else:
+            # use the IronDepth method to predict depth: https://github.com/baegwangbin/IronDepth
+            predicted_depth, _ = predict_iron_depth(
+                image=self.current_image_pil,
+                K=self.K,
+                device=self.args.device,
+                model=self.iron_depth_model,
+                n_net=self.iron_depth_n_net,
+                input_depth=self.rendered_depth,
+                input_mask=self.inpaint_mask,
+                fix_input_depth=True
+            )
 
         return predicted_depth
 
@@ -743,3 +755,10 @@ class Text2RoomPipeline(torch.nn.Module):
                 torch.cuda.empty_cache()
 
         return offset + pos
+    
+    def predict_boosting_mde_depth(self) -> torch.Tensor:
+        assert self.boosting_monocular_depth_pipeline, "Expected boosting monocular depth pipeline to be defined"
+        predicted_depth: npt.NDArray = self.boosting_monocular_depth_pipeline(image=self.current_image_pil)
+        predicted_depth_tensor = torch.from_numpy(predicted_depth).to(self.args.device)
+
+        return predicted_depth_tensor
