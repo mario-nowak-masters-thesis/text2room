@@ -93,7 +93,7 @@ class Text2RoomPipeline(torch.nn.Module):
     def setup_start_image(self, first_image_pil, offset):
         # save & convert first_image
         self.current_image_pil = first_image_pil
-        self.current_image_pil = self.current_image_pil.resize((self.W, self.H))
+        self.current_image_pil = self.current_image_pil.resize((self.W, self.H)) # TODO: is this resizing really necessary? Try to remove it
         self.current_image = pil_to_torch(self.current_image_pil, self.args.device)
         save_image(self.current_image_pil, "rgb", offset, self.args.rgb_path)
 
@@ -239,7 +239,7 @@ class Text2RoomPipeline(torch.nn.Module):
 
     def predict_depth(self):
         if self.args.use_boosting_monocular_depth:
-            predicted_depth = self.predict_boosting_mde_depth()
+            predicted_depth = self.predict_boosting_mde_depth() # TODO: only predict depth in missing areas
         else:
             # use the IronDepth method to predict depth: https://github.com/baegwangbin/IronDepth
             predicted_depth, _ = predict_iron_depth(
