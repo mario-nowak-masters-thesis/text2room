@@ -28,7 +28,7 @@ def get_default_parser():
     # STABLE DIFFUSION CONFIG
     group = parser.add_argument_group("stable-diffusion")
     group.add_argument('--prompt', required=False, default="a living room with a lit furnace, couch and cozy curtains, bright lamps that make the room look well-lit")
-    group.add_argument('--negative_prompt', required=False, default="blurry, bad art, blurred, text, watermark, plant, nature")
+    group.add_argument('--negative_prompt', required=False, default="blurry, bad art, blurred, text, watermark")
     group.add_argument('--guidance_scale', required=False, default=7.5, type=float)
     group.add_argument('--num_inference_steps', required=False, default=50, type=int)
 
