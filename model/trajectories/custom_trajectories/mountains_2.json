@@ -1,0 +1,12 @@
+[
+    {
+      "prompt": "photograph an outdoor scenery, mountain, lake, trees, daytime, clear sky",
+      "fn_name": "true_backward",
+      "fn_args": {
+        "tzmin": 0.0,
+        "tzmax": 0.01
+      },
+      "n_images": 10
+    }
+  ]
+  

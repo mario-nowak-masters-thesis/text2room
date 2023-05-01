@@ -28,7 +28,7 @@ def get_default_parser():
     # STABLE DIFFUSION CONFIG
     group = parser.add_argument_group("stable-diffusion")
     group.add_argument('--prompt', required=False, default="a living room with a lit furnace, couch and cozy curtains, bright lamps that make the room look well-lit")
-    group.add_argument('--negative_prompt', required=False, default="blurry, bad art, blurred, text, watermark, plant, nature")
+    group.add_argument('--negative_prompt', required=False, default="blurry, bad art, blurred, text, watermark")
     group.add_argument('--guidance_scale', required=False, default=7.5, type=float)
     group.add_argument('--num_inference_steps', required=False, default=50, type=int)
 
@@ -69,5 +69,11 @@ def get_default_parser():
     group.add_argument('--quick_run', action='store_true')
     group.add_argument('--skip_classical_inpainting', action='store_true')
     group.add_argument('-seed', type=int, default=42, help="the seed to be used for image generation")
+
+    # boosting monocular depth parameters
+    group = parser.add_argument_group("boosting monocular depth")
+    group.add_argument("--use_boosting_monocular_depth", default=True, action="store_true", help="whether to compute the depth using a boosted LeRes model")
+    group.add_argument("--leres_model_path", type=str, required=True, help="the path to a LeRes model checkpoint")
+    group.add_argument("--pix2pix_model_path", type=str, required=True, help="the path to a Pix2Pix model checkpoint")
 
     return parser

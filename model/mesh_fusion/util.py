@@ -16,10 +16,10 @@ def get_pixel_grids(height, width, reverse=False):
     else:
         x_linspace = torch.linspace(0, width - 1, width).view(1, width).expand(height, width)
         y_linspace = torch.linspace(0, height - 1, height).view(height, 1).expand(height, width)
-    x_coordinates = x_linspace.contiguous().view(-1)
-    y_coordinates = y_linspace.contiguous().view(-1)
+    x_coordinates = x_linspace.contiguous().view(-1) # ! shape of width * height
+    y_coordinates = y_linspace.contiguous().view(-1) # ! shape of width * height
     ones = torch.ones(height * width)
-    indices_grid = torch.stack([x_coordinates,  y_coordinates, ones], dim=0)
+    indices_grid = torch.stack([x_coordinates,  y_coordinates, ones], dim=0) # ! shape of [3, width * height]
     return indices_grid
 
 
@@ -46,9 +46,9 @@ def pts_to_image(pts, K, RT):
 
 
 def Screen_to_NDC(x, H, W):
-    sampler = torch.clone(x)
-    sampler[0:1] = (sampler[0:1] / (W -1) * 2.0 -1.0) * (W - 1.0) / (H - 1.0)
-    sampler[1:2] = (sampler[1:2] / (H -1) * 2.0 -1.0)
+    sampler = torch.clone(x) # ! <- result of get_pixel_grid
+    sampler[0:1] = (sampler[0:1] / (W -1) * 2.0 -1.0) * (W - 1.0) / (H - 1.0) # ! scale values from range [511, ..., 0] to [1.0, ..., -1.0]
+    sampler[1:2] = (sampler[1:2] / (H -1) * 2.0 -1.0) # ! scale values from range [511, ..., 0] to [1.0, ..., -1.0]
     return sampler
 
 
@@ -56,7 +56,7 @@ def get_camera(world_to_cam, fov_in_degrees):
     # pytorch3d expects transforms as row-vectors, so flip rotation: https://github.com/facebookresearch/pytorch3d/issues/1183
     R = world_to_cam[:3, :3].t()[None, ...]
     T = world_to_cam[:3, 3][None, ...]
-    camera = FoVPerspectiveCameras(device=world_to_cam.device, R=R, T=T, fov=fov_in_degrees, degrees=True)
+    camera = FoVPerspectiveCameras(device=world_to_cam.device, R=R, T=T, fov=fov_in_degrees, degrees=True, znear=0.0001)
     #K = get_pinhole_intrinsics_from_fov(H, W, fov_in_degrees).to(world_to_cam.device)[None]
     #cameras = PerspectiveCameras(device=world_to_cam.device, R=R, T=T, in_ndc=False, K=K, image_size=torch.tensor([[H,W]]))
     return camera
@@ -69,11 +69,11 @@ def unproject_points(world_to_cam, fov_in_degrees, depth, H, W):
     xy_depth = Screen_to_NDC(xy_depth, H, W)
     xy_depth[2] = depth.flatten()
     xy_depth = xy_depth.T
-    xy_depth = xy_depth[None]
+    xy_depth = xy_depth[None] # ! this is a list of x, y and z coordinates in normalized device coordinates
 
-    world_points = camera.unproject_points(xy_depth, world_coordinates=True, scaled_depth_input=False)
+    world_points = camera.unproject_points(xy_depth, world_coordinates=True, scaled_depth_input=False) # TODO: is my depth in scaled in [0, 1] ? 
     #world_points = cameras.unproject_points(xy_depth, world_coordinates=True)
-    world_points = world_points[0]
+    world_points = world_points[0] # ! squeeze
     world_points = world_points.T
 
     return world_points

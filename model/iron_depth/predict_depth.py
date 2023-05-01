@@ -121,7 +121,7 @@ def predict_iron_depth(image, K=None, device="cuda:0", model=None, n_net=None, i
 
     if input_depth is not None:
         input_dict['input_depth'] = input_depth.unsqueeze(0).unsqueeze(0)
-        input_dict['input_mask'] = input_mask.unsqueeze(0).unsqueeze(0)
+        input_dict['input_mask'] = input_mask.unsqueeze(0).unsqueeze(0) # TODO: Iron Depth only predicts the depth in the missing areas
         input_dict['fix_input_depth'] = fix_input_depth
 
     # IronDepth forward pass

@@ -186,7 +186,7 @@ def surface_normal_filter(vertices, faces, H, W, world_to_cam, fov_in_degrees, s
     else:
         # calculate dot product between per-pixel view_direction and the surface normals of all faces that project into this pixel
         pix_to_face = pix_to_face.squeeze()
-        invalid_mask = pix_to_face < 0
+        invalid_mask = pix_to_face < 0 # ? What is the invalid mask?
         pix_to_face[invalid_mask] = 0  # for indexing to work, but gets filtered later
         pix_to_surface_normal = surface_normal[pix_to_face]  # (H, W, faces_per_pixel, 3)
         view_direction = view_direction.reshape(H, W, 3).unsqueeze(-2).repeat(1, 1, pix_to_surface_normal.shape[2], 1)  # (H, W, faces_per_pixel, 3)
@@ -310,7 +310,7 @@ def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, ma
     # get point cloud from depth map
     C, H, W = colors.shape
     colors = colors.reshape(C, -1)
-    world_space_points = unproject_points(world_to_cam, fov_in_degrees, depth, H, W)
+    world_space_points = unproject_points(world_to_cam, fov_in_degrees, depth, H, W) # ! (x, y, z) for every 
 
     # define vertex_ids for triangulation
     '''
@@ -378,25 +378,25 @@ def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, ma
     faces_upper_left_triangle = torch.stack(
         [remapped_vertex_00.flatten(), remapped_vertex_10.flatten(), remapped_vertex_01.flatten()],  # counter-clockwise orientation
         dim=0
-    )
+    ) # ! dim is [3, height * width]
     faces_lower_right_triangle = torch.stack(
         [remapped_vertex_10.flatten(), remapped_vertex_11.flatten(), remapped_vertex_01.flatten()],  # counter-clockwise orientation
         dim=0
-    )
+    )  # ! dim is [3, height * width]
 
     # filter faces with -1 vertices and combine
     mask_upper_left = torch.all(faces_upper_left_triangle >= 0, dim=0)
     faces_upper_left_triangle = faces_upper_left_triangle[:, mask_upper_left]
     mask_lower_right = torch.all(faces_lower_right_triangle >= 0, dim=0)
     faces_lower_right_triangle = faces_lower_right_triangle[:, mask_lower_right]
-    faces = torch.cat([faces_upper_left_triangle, faces_lower_right_triangle], dim=1)
+    faces = torch.cat([faces_upper_left_triangle, faces_lower_right_triangle], dim=1) # ! shape [3, 2 * width * height]
 
     # apply surface normal threshold
     use_surface_normal_filter = surface_normal_threshold > -1
     if use_surface_normal_filter:
         # construct pix_to_face by exploiting triangulation scheme:
         # (1) get the face_ids for upper_left and lower_right branch
-        face_id = torch.arange(faces.shape[1], dtype=torch.long, device=faces.device)  # (P + Q)
+        face_id = torch.arange(faces.shape[1], dtype=torch.long, device=faces.device)  # (P + Q) # ! shape [2 * width * height]
         upper_left_face_id = face_id[:faces_upper_left_triangle.shape[1]]  # (P)
         lower_right_face_id = face_id[faces_upper_left_triangle.shape[1]:]  # (Q)
 
@@ -415,9 +415,9 @@ def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, ma
             vertex_00[mask_upper_left],
             vertex_10[mask_upper_left],
             vertex_01[mask_upper_left]
-        ], dim=0)  # (3, P)
-        upper_left_face_id = torch.stack([upper_left_face_id]*3, dim=0)  # (3, P)
-        pix_to_face[0:3].scatter_(dim=1, index=flattened_pixel_coordinates_upper_left, src=upper_left_face_id)
+        ], dim=0)  # (3, P) # ! has shape of [3, (H - 1) * (W - 1)]
+        upper_left_face_id = torch.stack([upper_left_face_id]*3, dim=0)  # (3, P) # ! has shape of [3, (H - 1) * (W - 1)]
+        pix_to_face[0:3].scatter_(dim=1, index=flattened_pixel_coordinates_upper_left, src=upper_left_face_id) # ! has shape [6, W * H]
 
         # lower_right triangle
         flattened_pixel_coordinates_lower_right = torch.stack([

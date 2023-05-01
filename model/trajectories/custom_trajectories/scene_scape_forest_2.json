@@ -1,0 +1,11 @@
+[
+  {
+    "prompt": "beautiful view of forest, daylight, high quality",
+    "fn_name": "true_backward",
+    "fn_args": {
+      "tzmin": 0.0,
+      "tzmax": 1.0
+    },
+    "n_images": 10
+  }
+]
