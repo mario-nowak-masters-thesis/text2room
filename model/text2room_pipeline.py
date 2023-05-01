@@ -111,7 +111,7 @@ class Text2RoomPipeline(torch.nn.Module):
         self.iron_depth_n_net, self.iron_depth_model = load_iron_depth_model(self.args.iron_depth_type, self.args.iron_depth_iters, self.args.models_path, self.args.device)
         self.boosting_monocular_depth_pipeline = BoostingMonocularDepthPipeline(
             device=self.args.device,
-            leres_model_path=self.args.leres_model_path,
+            depth_estimator_model_path=self.args.leres_model_path,
             pix2pix_model_path=self.args.pix2pix_model_path,
         )
 

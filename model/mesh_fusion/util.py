@@ -56,7 +56,7 @@ def get_camera(world_to_cam, fov_in_degrees):
     # pytorch3d expects transforms as row-vectors, so flip rotation: https://github.com/facebookresearch/pytorch3d/issues/1183
     R = world_to_cam[:3, :3].t()[None, ...]
     T = world_to_cam[:3, 3][None, ...]
-    camera = FoVPerspectiveCameras(device=world_to_cam.device, R=R, T=T, fov=fov_in_degrees, degrees=True)
+    camera = FoVPerspectiveCameras(device=world_to_cam.device, R=R, T=T, fov=fov_in_degrees, degrees=True, znear=0.0001)
     #K = get_pinhole_intrinsics_from_fov(H, W, fov_in_degrees).to(world_to_cam.device)[None]
     #cameras = PerspectiveCameras(device=world_to_cam.device, R=R, T=T, in_ndc=False, K=K, image_size=torch.tensor([[H,W]]))
     return camera
