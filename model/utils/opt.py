@@ -73,7 +73,9 @@ def get_default_parser():
     # boosting monocular depth parameters
     group = parser.add_argument_group("boosting monocular depth")
     group.add_argument("--use_boosting_monocular_depth", default=True, action="store_true", help="whether to compute the depth using a boosted LeRes model")
-    group.add_argument("--leres_model_path", type=str, required=True, help="the path to a LeRes model checkpoint")
+    group.add_argument("--depth_estimator_model", type=str, default="leres", help="the depth estimator model to be used: 'leres' or 'midas'")
+    group.add_argument("--depth_estimator_model_path", type=str, required=True, help="the path to a depth estimator model checkpoint")
     group.add_argument("--pix2pix_model_path", type=str, required=True, help="the path to a Pix2Pix model checkpoint")
+    group.add_argument("--skip_depth_boosting", action="store_true", help="whether to perform boosting on the depth estimator")
 
     return parser
