@@ -111,7 +111,8 @@ class Text2RoomPipeline(torch.nn.Module):
         self.iron_depth_n_net, self.iron_depth_model = load_iron_depth_model(self.args.iron_depth_type, self.args.iron_depth_iters, self.args.models_path, self.args.device)
         self.boosting_monocular_depth_pipeline = BoostingMonocularDepthPipeline(
             device=self.args.device,
-            depth_estimator_model_path=self.args.leres_model_path,
+            depth_estimator=self.args.depth_estimator_model,
+            depth_estimator_model_path=self.args.depth_estimator_model_path,
             pix2pix_model_path=self.args.pix2pix_model_path,
         )
 
@@ -758,7 +759,10 @@ class Text2RoomPipeline(torch.nn.Module):
     
     def predict_boosting_mde_depth(self) -> torch.Tensor:
         assert self.boosting_monocular_depth_pipeline, "Expected boosting monocular depth pipeline to be defined"
-        predicted_depth: npt.NDArray = self.boosting_monocular_depth_pipeline(image=self.current_image_pil)
+        predicted_depth: npt.NDArray = self.boosting_monocular_depth_pipeline(
+            image=self.current_image_pil,
+            perform_boosting=(not self.args.skip_depth_boosting)
+        )
         predicted_depth_tensor = torch.from_numpy(predicted_depth).to(self.args.device)
 
         return predicted_depth_tensor
