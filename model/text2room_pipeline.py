@@ -257,12 +257,20 @@ class Text2RoomPipeline(torch.nn.Module):
 
         return predicted_depth
 
-    def depth_alignment(self, predicted_depth):
-        aligned_depth = depth_alignment.scale_shift_linear(
-            rendered_depth=self.rendered_depth,
-            predicted_depth=predicted_depth,
-            mask=~self.inpaint_mask,
-            fuse=True)
+    def depth_alignment(self, predicted_depth, only_fuse=False):
+        if only_fuse:
+            aligned_depth = depth_alignment.fuse_depths(
+                self.rendered_depth,
+                predicted_depth,
+                mask=~self.inpaint_mask,
+            )
+        else:
+            aligned_depth = depth_alignment.scale_shift_linear(
+                rendered_depth=self.rendered_depth,
+                predicted_depth=predicted_depth,
+                mask=~self.inpaint_mask,
+                fuse=True,
+            )
 
         return aligned_depth
 
@@ -454,7 +462,7 @@ class Text2RoomPipeline(torch.nn.Module):
     def add_next_image(self, pos, offset, save_files=True, file_suffix=""):
         # predict & align depth of current image
         predicted_depth = self.predict_depth()
-        predicted_depth = self.depth_alignment(predicted_depth)
+        predicted_depth = self.depth_alignment(predicted_depth, only_fuse=True)
         predicted_depth = self.apply_depth_smoothing(predicted_depth, self.inpaint_mask) # TODO: I am not sure if this is such a good idea
         self.predicted_depth = predicted_depth
 
