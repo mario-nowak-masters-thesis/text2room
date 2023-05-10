@@ -68,7 +68,7 @@ def get_default_parser():
     group = parser.add_argument_group("custom")
     group.add_argument('--quick_run', action='store_true')
     group.add_argument('--skip_classical_inpainting', action='store_true')
-    group.add_argument('-seed', type=int, default=42, help="the seed to be used for image generation")
+    group.add_argument('--seed', type=int, default=42, help="the seed to be used for image generation")
 
     # boosting monocular depth parameters
     group = parser.add_argument_group("boosting monocular depth")
@@ -77,5 +77,6 @@ def get_default_parser():
     group.add_argument("--depth_estimator_model_path", type=str, required=True, help="the path to a depth estimator model checkpoint")
     group.add_argument("--pix2pix_model_path", type=str, required=True, help="the path to a Pix2Pix model checkpoint")
     group.add_argument("--skip_depth_boosting", action="store_true", help="whether to perform boosting on the depth estimator")
+    group.add_argument("--perform_depth_fine_tuning", action="store_true", help="whether to fine-tune the MiDaS depth estimator on the rendered depth")
 
     return parser

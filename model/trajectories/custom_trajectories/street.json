@@ -1,0 +1,12 @@
+[
+    {
+      "prompt": "photograph of a street in a city during daytime",
+      "fn_name": "true_backward",
+      "fn_args": {
+        "tzmin": 0.0,
+        "tzmax": 2
+      },
+      "n_images": 20
+    }
+  ]
+  
