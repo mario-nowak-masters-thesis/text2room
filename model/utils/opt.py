@@ -78,5 +78,7 @@ def get_default_parser():
     group.add_argument("--pix2pix_model_path", type=str, required=True, help="the path to a Pix2Pix model checkpoint")
     group.add_argument("--skip_depth_boosting", action="store_true", help="whether to perform boosting on the depth estimator")
     group.add_argument("--perform_depth_fine_tuning", action="store_true", help="whether to fine-tune the MiDaS depth estimator on the rendered depth")
+    group.add_argument("--skip_depth_alignment", action="store_true", help="whether to perform depth alignment")
+    group.add_argument("--number_midas_fine_tuning_epochs", type=int, default=300, help="how many MiDaS fine-tuning steps to perform")
 
     return parser

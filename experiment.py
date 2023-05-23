@@ -42,8 +42,9 @@ def main(args):
     pipeline.clean_mesh()
     pipeline.save_mesh("after_generation.ply")
     
-    pipeline.save_animations()
     pipeline.save_seen_trajectory_renderings(apply_noise=False, add_to_nerf_images=True)
+    pipeline.save_nerf_transforms()
+    pipeline.save_animations()
 
     print("Finished. Outputs stored in:", args.out_path)
 
@@ -59,5 +60,7 @@ if __name__ == "__main__":
                 "--pix2pix_model_path", "/scratch/students/2023-spring-mt-mhnowak/BoostingMonocularDepth/pix2pix/checkpoints/mergemodel/latest_net_G.pth",
                 "--input_image_path", "/scratch/students/2023-spring-mt-mhnowak/text2room/street-photo-3.png",
                 "--skip_depth_boosting",
+                "--perform_depth_fine_tuning",
+                "--number_midas_fine_tuning_epochs", "150"
             ])
     main(args)

@@ -238,6 +238,7 @@ class Text2RoomPipeline(torch.nn.Module):
     def save_animations(self, prefix=""):
         save_animation(self.args.rgb_path, prefix=prefix)
         save_animation(self.args.rgbd_path, prefix=prefix)
+        save_animation(self.args.output_rendering_path, prefix=prefix)
 
     def predict_depth(self):
         if self.args.use_boosting_monocular_depth:
@@ -462,7 +463,7 @@ class Text2RoomPipeline(torch.nn.Module):
     def add_next_image(self, pos, offset, save_files=True, file_suffix=""):
         # predict & align depth of current image
         predicted_depth = self.predict_depth()
-        predicted_depth = self.depth_alignment(predicted_depth, only_fuse=True)
+        predicted_depth = self.depth_alignment(predicted_depth, only_fuse=self.args.skip_depth_alignment)
         predicted_depth = self.apply_depth_smoothing(predicted_depth, self.inpaint_mask) # TODO: I am not sure if this is such a good idea
         self.predicted_depth = predicted_depth
 
@@ -778,6 +779,7 @@ class Text2RoomPipeline(torch.nn.Module):
                 image=self.current_image_pil,
                 rendered_depth=self.rendered_depth,
                 inpainting_mask=self.inpaint_mask,
+                number_training_epochs=self.args.number_midas_fine_tuning_epochs,
             )
         else:
             predicted_depth: npt.NDArray = self.boosting_monocular_depth_pipeline(

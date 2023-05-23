@@ -59,10 +59,10 @@ def main(args):
 
         # save additional output
         pipeline.load_mesh(mesh_poisson_path)
-    pipeline.save_animations()
     pipeline.save_seen_trajectory_renderings(apply_noise=False, add_to_nerf_images=True)
     pipeline.save_nerf_transforms()
-    pipeline.save_seen_trajectory_renderings(apply_noise=True)
+    # pipeline.save_seen_trajectory_renderings(apply_noise=True)
+    pipeline.save_animations()
 
     print("Finished. Outputs stored in:", args.out_path)
 
