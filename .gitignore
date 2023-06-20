@@ -6,4 +6,6 @@ checkpoints/
 __pycache__/
 
 *.pt
-/*.png
+**/*.png
+**/*.jpeg
+**/*.ipynb

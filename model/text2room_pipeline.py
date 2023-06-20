@@ -67,6 +67,7 @@ class Text2RoomPipeline(torch.nn.Module):
         # initialize global point-cloud / mesh structures
         self.rendered_depth = torch.zeros((H, W), device=self.args.device)  # depth rendered from point cloud
         self.inpaint_mask = torch.ones((H, W), device=self.args.device, dtype=torch.bool)  # 1: no projected points (need to be inpainted) | 0: have projected points
+        self.predicted_depth = None
         self.vertices = torch.empty((3, 0), device=args.device)
         self.colors = torch.empty((3, 0), device=args.device)
         self.faces = torch.empty((3, 0), device=args.device, dtype=torch.long)
@@ -237,6 +238,7 @@ class Text2RoomPipeline(torch.nn.Module):
     def save_animations(self, prefix=""):
         save_animation(self.args.rgb_path, prefix=prefix)
         save_animation(self.args.rgbd_path, prefix=prefix)
+        save_animation(self.args.output_rendering_path, prefix=prefix)
 
     def predict_depth(self):
         if self.args.use_boosting_monocular_depth:
@@ -256,12 +258,20 @@ class Text2RoomPipeline(torch.nn.Module):
 
         return predicted_depth
 
-    def depth_alignment(self, predicted_depth):
-        aligned_depth = depth_alignment.scale_shift_linear(
-            rendered_depth=self.rendered_depth,
-            predicted_depth=predicted_depth,
-            mask=~self.inpaint_mask,
-            fuse=True)
+    def depth_alignment(self, predicted_depth, only_fuse=False):
+        if only_fuse:
+            aligned_depth = depth_alignment.fuse_depths(
+                self.rendered_depth,
+                predicted_depth,
+                mask=~self.inpaint_mask,
+            )
+        else:
+            aligned_depth = depth_alignment.scale_shift_linear(
+                rendered_depth=self.rendered_depth,
+                predicted_depth=predicted_depth,
+                mask=~self.inpaint_mask,
+                fuse=True,
+            )
 
         return aligned_depth
 
@@ -453,8 +463,8 @@ class Text2RoomPipeline(torch.nn.Module):
     def add_next_image(self, pos, offset, save_files=True, file_suffix=""):
         # predict & align depth of current image
         predicted_depth = self.predict_depth()
-        predicted_depth = self.depth_alignment(predicted_depth)
-        predicted_depth = self.apply_depth_smoothing(predicted_depth, self.inpaint_mask)
+        predicted_depth = self.depth_alignment(predicted_depth, only_fuse=self.args.skip_depth_alignment)
+        predicted_depth = self.apply_depth_smoothing(predicted_depth, self.inpaint_mask) # TODO: I am not sure if this is such a good idea
         self.predicted_depth = predicted_depth
 
         rendered_depth_pil = Image.fromarray(visualize_depth_numpy(self.rendered_depth.cpu().numpy())[0].astype(np.uint8))
@@ -759,10 +769,23 @@ class Text2RoomPipeline(torch.nn.Module):
     
     def predict_boosting_mde_depth(self) -> torch.Tensor:
         assert self.boosting_monocular_depth_pipeline, "Expected boosting monocular depth pipeline to be defined"
-        predicted_depth: npt.NDArray = self.boosting_monocular_depth_pipeline(
-            image=self.current_image_pil,
-            perform_boosting=(not self.args.skip_depth_boosting)
-        )
+        if (
+            self.args.perform_depth_fine_tuning
+            and self.args.depth_estimator_model == "midas"
+            and self.predicted_depth != None
+        ):
+            print("Performing depth fine tuning")
+            predicted_depth = self.boosting_monocular_depth_pipeline.estimate_fined_tuned_midas_depth(
+                image=self.current_image_pil,
+                rendered_depth=self.rendered_depth,
+                inpainting_mask=self.inpaint_mask,
+                number_training_epochs=self.args.number_midas_fine_tuning_epochs,
+            )
+        else:
+            predicted_depth: npt.NDArray = self.boosting_monocular_depth_pipeline(
+                image=self.current_image_pil,
+                perform_boosting=(not self.args.skip_depth_boosting)
+            )
         predicted_depth_tensor = torch.from_numpy(predicted_depth).to(self.args.device)
 
         return predicted_depth_tensor
