@@ -62,7 +62,7 @@ if __name__ == "__main__":
                 "--skip_depth_boosting",
                 # "--perform_depth_fine_tuning",
                 # "--number_midas_fine_tuning_epochs", "150"
-                "--seed", "44",
+                "--seed", "46",
                 "--min_triangles_connected", "1000",
             ])
     main(args)

@@ -345,7 +345,7 @@ def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, ma
             # TODO: could also choose the existing vertex id for that face then (instead of duplicating the vertex) -- do not increase that face id with offset afterwards though
             mask_only_dilated = mask_dilated * ~mask
             face_verts = vertices.T[faces.T]  # (M, 3, 3) where face_verts[k, i] is i-th vertex of face k
-            pix_to_face_only_dilated = pix_to_face[0, mask_only_dilated][..., 0]  # (N)
+            pix_to_face_only_dilated = pix_to_face[0, mask_only_dilated][..., 0]  # (N) 
             face_verts = face_verts[pix_to_face_only_dilated]  # (N, 3, 3) where vertices[k, i] is "i-th vertex of face k" (:= V_ik)
             p_pred = world_space_points[:, mask_only_dilated.flatten()].T  # (N, 3) where p_pred[k] is "unprojected point corresponding to face k" (:= P_k)
             p_pred = p_pred[:, None, :].repeat(1, 3, 1)  # (N, 3, 3) where p_pred[k, i] is P_k for all i in [0..2]
