@@ -3,6 +3,7 @@ import cv2
 import os
 import json
 import numpy as np
+from numpy import typing as npt
 import time
 import pymeshlab
 import imageio
@@ -87,6 +88,15 @@ def save_image(image, prefix, idx, outdir):
     file_out = os.path.join(outdir, file_with_ext)
     image.save(file_out)
     return file_with_ext
+
+
+def save_array(array: npt.NDArray, prefix: str, index: int, outdir: str) -> str:
+    filename = f"{prefix}_{index:04}"
+    format = "npy"
+    file_with_format = f"{filename}.{format}"
+    file_out = os.path.join(outdir, file_with_format)
+    np.save(file_out, array)
+    return file_with_format
 
 
 def save_rgbd(image, depth, prefix, idx, outdir):
