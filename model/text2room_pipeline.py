@@ -289,6 +289,7 @@ class Text2RoomPipeline(torch.nn.Module):
             mask=self.inpaint_mask,
             edge_threshold=self.args.edge_threshold,
             surface_normal_threshold=self.args.surface_normal_threshold,
+            min_triangles_connected=self.args.min_triangles_connected,
             pix_to_face=self.pix_to_face,
             faces=self.faces,
             vertices=self.vertices

@@ -284,7 +284,7 @@ def remesh_poisson(vertices, colors, faces=None, max_faces_for_poisson=4_000_000
     return vertices, faces, colors
 
 
-def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, mask=None, edge_threshold=-1, surface_normal_threshold=-1, pix_to_face=None, faces=None, vertices=None):
+def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, mask=None, edge_threshold=-1, surface_normal_threshold=-1, min_triangles_connected=-1, pix_to_face=None, faces=None, vertices=None):
     """
     project features to mesh in world space and return (vertices, faces, colors) result by applying simple triangulation from image-structure.
 
@@ -449,7 +449,7 @@ def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, ma
         faces,
         colors,
         edge_threshold=edge_threshold,
-        min_triangles_connected=1000 if use_surface_normal_filter else -1,
+        min_triangles_connected=min_triangles_connected if use_surface_normal_filter else -1,
         fill_holes=use_surface_normal_filter
     )
 
