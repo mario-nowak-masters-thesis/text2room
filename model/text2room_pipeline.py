@@ -338,7 +338,7 @@ class Text2RoomPipeline(torch.nn.Module):
 
     def project(self):
         # project mesh into pose and render (rgb, depth, mask)
-        rendered_image_tensor, self.rendered_depth, self.inpaint_mask, self.pix_to_face, self.z_buf = render_mesh(
+        rendered_image_tensor, self.rendered_depth, self.inpaint_mask, self.pix_to_face, self.z_buf = render_mesh( # ! pix_to_face is set here
             vertices=self.vertices,
             faces=self.faces,
             vertex_features=self.colors,
@@ -465,7 +465,7 @@ class Text2RoomPipeline(torch.nn.Module):
             save_rgbd(self.current_image_pil, depth_pil, f'rgbd{file_suffix}', offset + pos, self.args.rgbd_path)
 
         # remove masked-out faces. If we use erosion in the mask it means those points will be removed.
-        if self.args.replace_over_inpainted:
+        if self.args.replace_over_inpainted: # ! this is not happening in the normal execution
             # only now update mask: predicted depth will still take old positions as anchors (they are still somewhat correct)
             # otherwise if we erode/dilate too much we could get depth estimates that are way off
             if not self.args.update_mask_after_improvement:
