@@ -58,9 +58,10 @@ if __name__ == "__main__":
                 "--depth_estimator_model", "midas",
                 "--depth_estimator_model_path", "/scratch/students/2023-spring-mt-mhnowak/BoostingMonocularDepth/midas/model.pt",
                 "--pix2pix_model_path", "/scratch/students/2023-spring-mt-mhnowak/BoostingMonocularDepth/pix2pix/checkpoints/mergemodel/latest_net_G.pth",
-                "--input_image_path", "/scratch/students/2023-spring-mt-mhnowak/text2room/street-photo-3.png",
+                # "--input_image_path", "/scratch/students/2023-spring-mt-mhnowak/text2room/street-photo-3.png",
                 "--skip_depth_boosting",
-                "--perform_depth_fine_tuning",
-                "--number_midas_fine_tuning_epochs", "150"
+                # "--perform_depth_fine_tuning",
+                # "--number_midas_fine_tuning_epochs", "150"
+                "--seed", "43",
             ])
     main(args)

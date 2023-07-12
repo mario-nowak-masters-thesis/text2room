@@ -34,6 +34,7 @@ from model.trajectories.convert_to_nerf_convention import convert_pose_to_nerf_c
 from model.utils.utils import (
     visualize_depth_numpy,
     save_image,
+    save_array,
     pil_to_torch,
     save_rgbd,
     load_sd_inpaint,
@@ -638,9 +639,12 @@ class Text2RoomPipeline(torch.nn.Module):
             self.world_to_cam = p
             _, rendered_image_pil, inpaint_mask_pil = self.project()
             filename = save_image(rendered_image_pil, "rendering" if not apply_noise else "rendering_noise", i, self.args.output_rendering_path)
-            filename_depth = save_image(
-                Image.fromarray(self.rendered_depth.squeeze().detach().cpu().numpy().astype(np.uint16)),
-                "depth" if not apply_noise else "depth_noise", i, self.args.output_depth_path)
+            filename_depth = save_array(
+                self.rendered_depth.squeeze().detach().cpu().numpy(),
+                "depth" if not apply_noise else "depth_noise",
+                i,
+                self.args.output_depth_path,
+            )
             if add_to_nerf_images:
                 self.append_nerf_extrinsic(os.path.basename(self.args.output_rendering_path), filename, os.path.basename(self.args.output_depth_path), filename_depth)
 
