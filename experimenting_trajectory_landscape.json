@@ -1,0 +1,11 @@
+[
+  {
+    "prompt": "realistic photograph of a landscape of mountains and a lake",
+    "fn_name": "true_backward",
+    "fn_args": {
+      "tzmin": 0.1,
+      "tzmax": 1.6
+    },
+    "n_images": 15
+  }
+]

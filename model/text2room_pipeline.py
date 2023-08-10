@@ -451,8 +451,8 @@ class Text2RoomPipeline(torch.nn.Module):
             # new content is created mostly in x direction, sharp edges in y direction are wanted (e.g. table --> wall)
             return dx.squeeze()
 
-        edges = sobel(mask)
-        dilated_edges = dilate(edges, k=21)
+        edges = sobel(mask) # <- only get edges of the mask (one pixel thick)
+        dilated_edges = dilate(edges, k=21) # <- make the edges (21 pixels thick)
 
         img_numpy = image.float().cpu().numpy()
         blur_bilateral = cv2.bilateralFilter(img_numpy, 5, 140, 140)

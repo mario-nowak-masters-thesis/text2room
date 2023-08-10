@@ -4,8 +4,8 @@
     "fn_name": "true_backward",
     "fn_args": {
       "tzmin": 0.1,
-      "tzmax": 0.4
+      "tzmax": 2.1
     },
-    "n_images": 3
+    "n_images": 10
   }
 ]

@@ -52,6 +52,7 @@ def main(args):
 if __name__ == "__main__":
     parser = get_default_parser()
     args = parser.parse_args([
+                # "--trajectory_file", "/scratch/students/2023-spring-mt-mhnowak/text2room/experiment_trajectories/urban_2.json",
                 "--trajectory_file", "/scratch/students/2023-spring-mt-mhnowak/text2room/experimenting_trajectory.json",
                 "--quick_run",
                 "--skip_classical_inpainting",
@@ -62,7 +63,9 @@ if __name__ == "__main__":
                 "--skip_depth_boosting",
                 # "--perform_depth_fine_tuning",
                 # "--number_midas_fine_tuning_epochs", "150"
-                "--seed", "46",
-                "--min_triangles_connected", "1000",
+                "--seed", "52",
+                # "--min_triangles_connected", "1000",
+                # "--edge_threshold", "0.01",
+                # "--surface_normal_threshold", "0.01",
             ])
     main(args)

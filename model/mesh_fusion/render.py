@@ -171,12 +171,12 @@ def surface_normal_filter(vertices, faces, H, W, world_to_cam, fov_in_degrees, s
     surface_normal = calculate_face_normal(vertices.permute(1, 0), faces.permute(1, 0))  # [faces_number, 3]
 
     # Get view directions
-    depth = torch.ones((H, W)).to(vertices)
+    depth = torch.ones((H, W)).to(vertices) # TODO: why are they using ones here??? I feel like this is a problem, when my znear is 0.0001
     world_points = unproject_points(world_to_cam, fov_in_degrees, depth, H, W).permute(1, 0)
     camera = get_camera(world_to_cam, fov_in_degrees)
     camera_center = camera.get_camera_center()
     view_direction = world_points - camera_center
-    view_direction = view_direction / torch.norm(view_direction, dim=-1, keepdim=True)
+    view_direction = view_direction / torch.norm(view_direction, dim=-1, keepdim=True) # [H*W, 3]
 
     if pix_to_face is None:
         # use center view direction since we do not know which face maps to which pixel
@@ -185,22 +185,22 @@ def surface_normal_filter(vertices, faces, H, W, world_to_cam, fov_in_degrees, s
         dot_map = torch.abs(dot_map)
     else:
         # calculate dot product between per-pixel view_direction and the surface normals of all faces that project into this pixel
-        pix_to_face = pix_to_face.squeeze()
-        invalid_mask = pix_to_face < 0 # ? What is the invalid mask?
+        pix_to_face = pix_to_face.squeeze() # [512, 512, 6]
+        invalid_mask = pix_to_face < 0 # ? What is the invalid mask? [512, 512, 6]
         pix_to_face[invalid_mask] = 0  # for indexing to work, but gets filtered later
-        pix_to_surface_normal = surface_normal[pix_to_face]  # (H, W, faces_per_pixel, 3)
+        pix_to_surface_normal = surface_normal[pix_to_face]  # (H, W, faces_per_pixel (6), 3)
         view_direction = view_direction.reshape(H, W, 3).unsqueeze(-2).repeat(1, 1, pix_to_surface_normal.shape[2], 1)  # (H, W, faces_per_pixel, 3)
         dot_map = (pix_to_surface_normal * view_direction).sum(dim=-1).abs()  # (H, W, faces_per_pixel)
 
         # a face can be used in multiple pixels, so final dot product is the average from all pixels
-        per_face_dot_product_sum = torch.zeros(faces.shape[1], device=faces.device)  # (M)
+        per_face_dot_product_sum = torch.zeros(faces.shape[1], device=faces.device)  # (M = number faces)
         per_face_observed_count = torch.zeros(faces.shape[1], device=faces.device)  # (M)
 
         # add contribution to the specified face positions
-        index = pix_to_face[~invalid_mask].flatten()  # M * (H, W, faces_per_pixel) --> (P)
+        index = pix_to_face[~invalid_mask].flatten()  # M * (H, W, faces_per_pixel) --> (P) | This tensor represents the indices of faces that are valid and observed in the pixels.
         dot_map = dot_map[~invalid_mask].flatten()  # M * (H, W, faces_per_pixel) --> (P)
         per_face_dot_product_sum.scatter_add_(dim=0, index=index, src=dot_map)
-        per_face_observed_count.scatter_add_(dim=0, index=index, src=torch.ones_like(dot_map))
+        per_face_observed_count.scatter_add_(dim=0, index=index, src=torch.ones_like(dot_map)) # this seems to always be 3 for every face which would make sense since one face is formed from three pixels
 
         # compute final average
         dot_map = per_face_dot_product_sum / per_face_observed_count.clamp(min=1e-8)
@@ -339,21 +339,25 @@ def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, ma
         | / | / |  
         x---o---o
         '''
-        mask_dilated = dilate(mask, k=5)
+        mask_dilated = dilate(mask, k=5) #* (H, W) <- "extend" mask by 5 pixels, it now includes pixels 
         if pix_to_face is not None and faces is not None and vertices is not None:
             # replace dilated world_points with existing vertices (pix_to_face --> face --> closest vertex to world_points)
             # TODO: could also choose the existing vertex id for that face then (instead of duplicating the vertex) -- do not increase that face id with offset afterwards though
-            mask_only_dilated = mask_dilated * ~mask
-            face_verts = vertices.T[faces.T]  # (M, 3, 3) where face_verts[k, i] is i-th vertex of face k
-            pix_to_face_only_dilated = pix_to_face[0, mask_only_dilated][..., 0]  # (N) 
+            mask_only_dilated = mask_dilated * ~mask # <- only get the extended part of the mask
+            face_verts = vertices.T[faces.T]  # (M, 3, 3) where face_verts[k, i] is i-th vertex of face k #? is M the number of faces? It must be, right?
+            #* pix_to_face[0, mask_only_dilated] has shape [# entries in mask dilated == true (N in the following comment), 8]
+            pix_to_face_only_dilated = pix_to_face[0, mask_only_dilated][..., 0]  # (N <- number of faces in extended mask??) #* <- setting the last index to 0 means we take the face that is nearest to the pixel in z direction
+            # face_verst is of the old mesh! 
             face_verts = face_verts[pix_to_face_only_dilated]  # (N, 3, 3) where vertices[k, i] is "i-th vertex of face k" (:= V_ik)
+            # p_pred is of the newly unprojected content! it is the points that lie in the extended area of the previous mask
             p_pred = world_space_points[:, mask_only_dilated.flatten()].T  # (N, 3) where p_pred[k] is "unprojected point corresponding to face k" (:= P_k)
             p_pred = p_pred[:, None, :].repeat(1, 3, 1)  # (N, 3, 3) where p_pred[k, i] is P_k for all i in [0..2]
-            d = torch.linalg.vector_norm(p_pred - face_verts, dim=2)  # (N, 3) where d[k, i] is l2_dist(V_ik, P_k)
-            closest_vertex_index = torch.argmin(d, dim=1)  # (N) where closest_vertex_index[k] is in [0..2] and signaling which i of V_ik is closest to P_k
+            distance = torch.linalg.vector_norm(p_pred - face_verts, dim=2)  # (N, 3) where d[k, i] is l2_dist(V_ik, P_k)
+            closest_vertex_index = torch.argmin(distance, dim=1)  # (N) where closest_vertex_index[k] is in [0..2] and signaling which i of V_ik is closest to P_k
             closest_vertex_index = closest_vertex_index[..., None, None].repeat(1, 1, 3)  # (N, 1, 3)
             closest_vertex = torch.gather(input=face_verts, dim=1, index=closest_vertex_index)  # (N, 1, 3) where closest_vertex[k, 0] is V_ik with i=closest_vertex_index[k]
             closest_vertex = closest_vertex.squeeze().t()  # (3, N)
+            #! replacing the points with the closest vertex means that it will become "connected" to the existing part of the mesh"
             world_space_points[:, mask_only_dilated.flatten()] = closest_vertex  # replace P_k with V_ik
 
         # only keep vertices/features for faces that need to be added (i.e. are masked) -- rest of the faces are already present in 3D
