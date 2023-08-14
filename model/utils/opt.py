@@ -81,4 +81,12 @@ def get_default_parser():
     group.add_argument("--skip_depth_alignment", action="store_true", help="whether to perform depth alignment")
     group.add_argument("--number_midas_fine_tuning_epochs", type=int, default=300, help="how many MiDaS fine-tuning steps to perform")
 
+    # midas v3 parameters
+    group = parser.add_argument_group("midas v3")
+    group.add_argument("--use_midas_v3_from_hub", default=False, action="store_true")
+
+    # custom params
+    group.add_argument("--disparity_min", type=float, default=0.25)
+    group.add_argument("--disparity_max", type=float, default=4.0)
+
     return parser

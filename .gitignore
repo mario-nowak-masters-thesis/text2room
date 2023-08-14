@@ -1,4 +1,5 @@
 output/
+final_output/
 checkpoints/
 
 .idea
