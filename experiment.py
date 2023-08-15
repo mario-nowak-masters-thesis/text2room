@@ -63,6 +63,20 @@ street_2 = [ # Usable <- choice
     "--disparity_max", "600.0",
 ]
 
+street_2_1 = [ # Usable <- choice
+    "--prompt", "photograph of an inviting street in a city during daytime, realistic",
+    "--seed", "52",
+    "--disparity_min", "0.5",
+    "--disparity_max", "2",
+]
+
+street_2_2 = [ # Usable <- choice
+    "--prompt", "photograph of an inviting street in a city during daytime, realistic",
+    "--seed", "52",
+    "--disparity_min", "1",
+    "--disparity_max", "4",
+]
+
 street_3 = [ # Usable <- choice
     "--prompt", "inviting street in a big city during the evening, photograph, realistic",
     "--seed", "56",
@@ -132,20 +146,40 @@ scenery_5 = [ ## Usable <- choice
 scenery_6 = [ ## Usable <- choice
     "--prompt", "outdoor scenery, mountain, lake, trees, daytime, clear sky",
     "--seed", "42",
-    "--disparity_min", "0.25",
-    "--disparity_max", "600.0",
-    # "--edge_threshold", "0.00", # "0.01"
-    # "--surface_normal_threshold", "0.00", # "0.01"
-]
-
-scene_scape_1 = [ ## Usable <- choice
-    "--prompt", "POV, cave, pools, water, dark cavern, inside a cave, beautiful scenery, best quality, indoor scene",
-    "--seed", "53",
     "--disparity_min", "0.005",
     "--disparity_max", "600.0",
     # "--edge_threshold", "0.00", # "0.01"
     # "--surface_normal_threshold", "0.00", # "0.01"
 ]
+
+scenery_6_2 = [
+    "--prompt", "outdoor scenery, mountain, lake, trees, daytime, clear sky",
+    "--seed", "42",
+    "--disparity_min", "1.0",
+    "--disparity_max", "4.0",
+    # "--edge_threshold", "0.00", # "0.01"
+    # "--surface_normal_threshold", "0.00", # "0.01"
+]
+
+
+scene_scape_1 = [ ## Usable <- choice
+    "--prompt", "POV, cave, pools, water, dark cavern, inside a cave, beautiful scenery, best quality, indoor scene",
+    "--seed", "53",
+    "--disparity_min", "1.0",
+    "--disparity_max", "4.0",
+    # "--edge_threshold", "0.00", # "0.01"
+    # "--surface_normal_threshold", "0.00", # "0.01"
+]
+
+scene_scape_1_1 = [ ## Usable <- choice
+    "--prompt", "POV, cave, pools, water, dark cavern, inside a cave, beautiful scenery, best quality, indoor scene",
+    "--seed", "53",
+    "--disparity_min", "1.0",
+    "--disparity_max", "4.0",
+    # "--edge_threshold", "0.00", # "0.01"
+    # "--surface_normal_threshold", "0.00", # "0.01"
+]
+
 
 scene_scape_2 = [ ## Usable <- choice
     "--prompt", "walkthrough, inside a medieval forge, metal, fire, beautiful photo, masterpiece, indoor scene",
@@ -177,7 +211,7 @@ if __name__ == "__main__":
                 "--use_midas_v3_from_hub",
                 "--out_path", "final_output",
                 # "--trajectory_file", "/scratch/students/2023-spring-mt-mhnowak/text2room/experiment_trajectories/urban_2.json",
-                "--trajectory_file", "/scratch/students/2023-spring-mt-mhnowak/text2room/final_experimenting_trajectory.json",
+                "--trajectory_file", "/scratch/students/2023-spring-mt-mhnowak/text2room/final_experimenting_trajectory_3.json",
                 # "--prompt", "photograph of an inviting street in a city during daytime, realistic",
                 "--negative_prompt", "text, writings, signs, text, white border, photograph border, artifacts, blur, smooth texture, foggy, fog, bad quality, distortions, unrealistic, distorted image, watermark, signature, fisheye look, windows, people, crowd, view, chandelier",
                 # "--skip_depth_alignment",
@@ -187,5 +221,5 @@ if __name__ == "__main__":
                 # "--min_triangles_connected", "15000",
                 # "--edge_threshold", "0.00", # "0.01"
                 # "--surface_normal_threshold", "0.00", # "0.01"
-            ] + scenery_6)
+            ] + scene_scape_1_1)
     main(args)

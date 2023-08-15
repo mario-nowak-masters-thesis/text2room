@@ -89,8 +89,6 @@ class Text2RoomPipeline(torch.nn.Module):
         self.nerf_transforms_dict = self.build_nerf_transforms_header()
 
         self.args.min_disparity = 1e-2
-        self.args.disparity_min = 0.25
-        self.args.disparity_max = 4
 
         # save start image if specified
         if first_image_pil is not None:
@@ -119,7 +117,7 @@ class Text2RoomPipeline(torch.nn.Module):
         if self.args.use_midas_v3_from_hub:
             self.depth_model = torch.hub.load("intel-isl/MiDaS", "DPT_Large").to(self.args.device)
             self.midas_transforms = torch.hub.load("intel-isl/MiDaS", "transforms").dpt_transform
-        if self.args.use_boosting_monocular_depth:
+        elif self.args.use_boosting_monocular_depth:
             self.boosting_monocular_depth_pipeline = BoostingMonocularDepthPipeline(
                 device=self.args.device,
                 depth_estimator=self.args.depth_estimator_model,
@@ -255,7 +253,7 @@ class Text2RoomPipeline(torch.nn.Module):
     def predict_depth(self):
         if self.args.use_midas_v3_from_hub:
             predicted_depth = self.predict_mde_v3_depth()
-        if self.args.use_boosting_monocular_depth:
+        elif self.args.use_boosting_monocular_depth:
             predicted_depth = self.predict_boosting_mde_depth() # TODO: only predict depth in missing areas
         else:
             # use the IronDepth method to predict depth: https://github.com/baegwangbin/IronDepth
@@ -801,12 +799,23 @@ class Text2RoomPipeline(torch.nn.Module):
                 align_corners=False,
             ).squeeze()
 
+        ## ==
         disparity = disparity.clip(self.args.min_disparity, max=None)
         new_min = self.args.disparity_min
         new_max = self.args.disparity_max
         scaled_disparity = ((new_max - new_min) * (disparity - disparity.min())) / (disparity.max() - disparity.min()) + new_min
 
         depth = 1 / scaled_disparity
+        ## ==
+
+        # midas_scale = disparity.min() - disparity.max()
+        # midas_shift = disparity.max()
+        # depth = (disparity - midas_shift ) / midas_scale
+
+        # midas_scale = disparity.max() - disparity.min()
+        # midas_shift = disparity.min()
+        # depth = (disparity - midas_shift ) / midas_scale
+        # depth = 1 - depth
 
         return depth
 

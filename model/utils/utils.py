@@ -126,6 +126,16 @@ def save_animation(image_folder_path, prefix=""):
             writer.append_data(image)
 
 
+# def save_video():
+#     gif_name = os.path.join(image_folder_path, prefix + 'animation.gif')
+#     images = [os.path.join(image_folder_path, img) for img in sorted(os.listdir(image_folder_path), key=lambda x: int(x.split(".")[0].split("_")[-1])) if "rgb" in img]
+
+#     with imageio.get_writer(gif_name, mode='I', duration=0.2) as writer:
+#         for filename in images:
+#             image = imageio.v3.imread(filename)
+#             writer.append_data(image)
+
+
 def save_poisson_mesh(mesh_file_path, depth=12, max_faces=10_000_000):
     # load mesh
     ms = pymeshlab.MeshSet()
