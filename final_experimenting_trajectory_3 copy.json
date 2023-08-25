@@ -1,0 +1,11 @@
+[
+    {
+      "fn_name": "true_backward",
+      "fn_args": {
+        "tzmin": 0.05,
+        "tzmax": 1.05
+      },
+      "n_images": 20
+    }
+]
+  

@@ -9,6 +9,7 @@ import json
 from datetime import datetime
 from tqdm.auto import tqdm
 import trimesh
+import copy
 
 from torchvision.transforms import ToTensor
 
@@ -34,6 +35,7 @@ from model.trajectories import trajectory_util, pose_noise_util
 from model.trajectories.convert_to_nerf_convention import convert_pose_to_nerf_convention, convert_pose_from_nerf_convention
 
 from model.utils.utils import (
+    save_video,
     visualize_depth_numpy,
     save_image,
     save_array,
@@ -137,6 +139,8 @@ class Text2RoomPipeline(torch.nn.Module):
     def setup_output_directories(self):
         prompt_folder_name = self.orig_prompt[:40]
         prompt_folder_name = prompt_folder_name.replace(" ", "_")
+        if self.args.prompt_name != None:
+            prompt_folder_name = self.args.prompt_name
 
         if os.path.isfile(self.args.trajectory_file):
             trajectory_name = os.path.basename(self.args.trajectory_file)
@@ -220,10 +224,15 @@ class Text2RoomPipeline(torch.nn.Module):
         })
 
     def save_nerf_transforms(self):
-        nerf_transforms_file = os.path.join(self.args.out_path, 'transforms.json')
+        frames = self.nerf_transforms_dict["frames"]
+        for partition_size in range(10, len(frames), 10):
 
-        with open(nerf_transforms_file, "w") as f:
-            json.dump(self.nerf_transforms_dict, f, indent=4)
+            nerf_transforms_file = os.path.join(self.args.out_path, f'transforms_{partition_size}.json')
+            nerf_transforms_dict = copy.deepcopy(self.nerf_transforms_dict)
+            nerf_transforms_dict["frames"] = frames[:partition_size+1]
+
+            with open(nerf_transforms_file, "w") as f:
+                json.dump(nerf_transforms_dict, f, indent=4)
 
         return nerf_transforms_file
 
@@ -249,6 +258,12 @@ class Text2RoomPipeline(torch.nn.Module):
         save_animation(self.args.rgb_path, prefix=prefix)
         save_animation(self.args.rgbd_path, prefix=prefix)
         save_animation(self.args.output_rendering_path, prefix=prefix)
+    
+    def save_videos(self, prefix=""):
+        save_video(self.args.rgb_path, prefix=prefix, pattern="rgb")
+        save_video(self.args.rgbd_path, prefix=prefix, pattern="rgbd")
+        save_video(self.args.depth_path, prefix=prefix, pattern="depth")
+        save_video(self.args.output_rendering_path, prefix=prefix, pattern="rendering")
 
     def predict_depth(self):
         if self.args.use_midas_v3_from_hub:
@@ -483,7 +498,7 @@ class Text2RoomPipeline(torch.nn.Module):
         rendered_depth_pil = Image.fromarray(visualize_depth_numpy(self.rendered_depth.cpu().numpy())[0].astype(np.uint8))
         depth_pil = Image.fromarray(visualize_depth_numpy(predicted_depth.cpu().numpy())[0].astype(np.uint8))
         if save_files:
-            save_image(rendered_depth_pil, f"rendered_depth{file_suffix}", offset + pos, self.args.depth_path)
+            # save_image(rendered_depth_pil, f"rendered_depth{file_suffix}", offset + pos, self.args.depth_path)
             save_image(depth_pil, f"depth{file_suffix}", offset + pos, self.args.depth_path)
             save_rgbd(self.current_image_pil, depth_pil, f'rgbd{file_suffix}', offset + pos, self.args.rgbd_path)
 

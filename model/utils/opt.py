@@ -88,5 +88,6 @@ def get_default_parser():
     # custom params
     group.add_argument("--disparity_min", type=float, default=0.25)
     group.add_argument("--disparity_max", type=float, default=4.0)
+    group.add_argument('--prompt_name', type=str, required=False, default=None)
 
     return parser

@@ -126,14 +126,24 @@ def save_animation(image_folder_path, prefix=""):
             writer.append_data(image)
 
 
-# def save_video():
-#     gif_name = os.path.join(image_folder_path, prefix + 'animation.gif')
-#     images = [os.path.join(image_folder_path, img) for img in sorted(os.listdir(image_folder_path), key=lambda x: int(x.split(".")[0].split("_")[-1])) if "rgb" in img]
+def save_video(image_folder_path, prefix="", pattern="rgb"):
+    image_paths = [os.path.join(image_folder_path, img) for img in sorted(os.listdir(image_folder_path), key=lambda x: int(x.split(".")[0].split("_")[-1])) if pattern in img]
+    image_pils = [Image.open(image_path) for image_path in image_paths]
+    image_arrays = [np.asanyarray(image_pil) for image_pil in image_pils]
+    # final_array = np.stack(image_arrays, axis=0)
 
-#     with imageio.get_writer(gif_name, mode='I', duration=0.2) as writer:
-#         for filename in images:
-#             image = imageio.v3.imread(filename)
-#             writer.append_data(image)
+    for partition_size in range(10, len(image_arrays), 10):
+        # video_name = os.path.join(image_folder_path, prefix + f'video_{partition_size}.mp4')
+        # writer = imageio.get_writer(video_name, fps=10, quality=10, macro_block_size=1)
+        # for image_path in image_paths[:partition_size]:
+        #     im = imageio.imread(image_path)
+        #     writer.append_data(im)
+        # writer.close()
+        
+        video_name = os.path.join(image_folder_path, prefix + f'video_{partition_size+1}.mp4')
+        imageio.v2.mimwrite(video_name, image_arrays[:partition_size+1], fps=10, quality=9, macro_block_size=1)
+    
+
 
 
 def save_poisson_mesh(mesh_file_path, depth=12, max_faces=10_000_000):
